@@ -17,6 +17,7 @@ function buildMask({
   shape,
   posX,
   posY,
+  bothSides,
 }: {
   type: "linear" | "radial";
   angle: number;
@@ -26,11 +27,15 @@ function buildMask({
   shape: "circle" | "ellipse";
   posX: number;
   posY: number;
+  bothSides: boolean;
 }) {
   const from = invert ? "black" : "transparent";
   const to = invert ? "transparent" : "black";
 
   if (type === "linear") {
+    if (bothSides) {
+      return `linear-gradient(${angle}deg, ${from} 0%, ${to} ${start}%, ${to} ${end}%, ${from} 100%)`;
+    }
     return `linear-gradient(${angle}deg, ${from} ${start}%, ${to} ${end}%)`;
   }
   // radial
@@ -44,6 +49,7 @@ export default function MaskGenerator() {
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(100);
   const [invert, setInvert] = useState(false);
+  const [bothSides, setBothSides] = useState(false);
   const [shape, setShape] = useState<"circle" | "ellipse">("circle");
   const [posX, setPosX] = useState(50);
   const [posY, setPosY] = useState(50);
@@ -52,8 +58,8 @@ export default function MaskGenerator() {
 
   const maskImage = useMemo(
     () =>
-      buildMask({ type, angle, start, end, invert, shape, posX, posY }),
-    [type, angle, start, end, invert, shape, posX, posY]
+      buildMask({ type, angle, start, end, invert, shape, posX, posY, bothSides }),
+    [type, angle, start, end, invert, shape, posX, posY, bothSides]
   );
 
   const css = useMemo(() => {
@@ -132,6 +138,15 @@ export default function MaskGenerator() {
                 </div>
                 <Switch id="invert" checked={invert} onCheckedChange={setInvert} />
               </div>
+              {type === "linear" && (
+                <div className="flex items-center justify-between sm:col-span-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="bothSides">Mask both sides</Label>
+                    <p className="text-sm text-muted-foreground">Opaque middle, transparent edges</p>
+                  </div>
+                  <Switch id="bothSides" checked={bothSides} onCheckedChange={setBothSides} />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="repeat">Repeat</Label>
                 <Select value={repeat} onValueChange={(v) => setRepeat(v as any)}>
